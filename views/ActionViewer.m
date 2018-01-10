@@ -32,16 +32,64 @@ gui_State = struct('gui_Name',       mfilename, ...
     'gui_OutputFcn',  @ActionViewer_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
-if nargin && ischar(varargin{1})
-    gui_State.gui_Callback = str2func(varargin{1});
-end
 
+% 'Metadata','meta_record','Times','time_record','Images','image_record','Depth','deep_record'
+
+% Hds = load_video(hObject, Hds);
+% set_display (Hds);
+% set_buttons (Hds);
+
+% if isempty (cur_frame), return;  end
+% axis(Hds.axis_preview);
+% display_frame (Hds);
+
+opt_args = {'Depth', 'Images', 'Metadata', 'Times', 'fpath'};
+parse_opts = false;
+if nargin 
+    
+    if ischar(varargin{1})
+        gui_State.gui_Callback = str2func(varargin{1});
+        if length(varargin{2}) > 1
+            parse_opts = true;
+        end
+    end
+    if parse_opts || length(varargin{1}) > 1
+        mapObj = containers.Map(varargin{1}(1:2:end),varargin{1}(2:2:end),'UniformValues',false);
+        keySet = mapObj.keys;
+        setValues = mapObj.values;
+        depth = [];
+        images = [];
+        metadata = [];
+        times = [];
+        fpath = [];
+        for x = 1:length(keySet)
+            ids = find(strcmp(keySet{x}, opt_args));
+            if ids
+                switch keySet{x}
+                    case 'Depth'
+                        depth = setValues{x};
+                    case 'Images'
+                        images = setValues{x};
+                    case 'Metadata'
+                        metadata = setValues{x};
+                    case 'Times'
+                        times = setValues{x};
+                    otherwise
+                        fprintf(1, 'ActionViewer(): Unknown key %s', keySet{x});
+                end
+            end
+        end
+        video_data = Video(images, times, metadata, depth);
+        video_data.fpath = fpath;
+    end
+end
 if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
 else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
+
 
 
 % --- Executes just before ActionViewer is made visible.
@@ -83,29 +131,59 @@ axis(Hds.axis_preview);
 
 % Choose default command line output for ActionViewer
 Hds.output = hObject;
-do_preview = 0;
 % imshow('logo-smile.png');
-if ~exist( varargin, 'var' ) && isfield(varargin,'images')
+
+opt_args = {'Depth', 'Images', 'Metadata', 'Times', 'fpath'};
+parse_opts = false;
+opts_ids = length(varargin);
+video_data = {};
+if opts_ids
     
-    video_data.frames = varargin.frames;
-    video_data.display = true;
-    video_data.current_index = 1;
-    video_data.nframes = numel(video_data.image_record);
-    video_data.unsaved = false;
-    %     video_data.fpath = ['./fd_' video_data.corpus.info.collection_id{1} '.mat'];
-    
-    
-    if video_data.nframes > 0,     do_preview = 1;     end
-    
-else
-    video_data = {};
-    %     video_data = clean_corpus(video_data);
+    if ischar(varargin{1}) &&  opts_ids == 1
+        gui_State.gui_Callback = str2func(varargin{1});
+    else
+        if opts_ids == 1
+            opts = varargin{1};
+        else
+            opts = varargin{2};
+        end
+        
+        mapObj = containers.Map(opts(1:2:end),opts(2:2:end),'UniformValues',false);
+        keySet = mapObj.keys;
+        setValues = mapObj.values;
+        depth = [];
+        images = [];
+        metadata = [];
+        times = [];
+        fpath = [];
+        for x = 1:length(keySet)
+            ids = find(strcmp(keySet{x}, opt_args));
+            if ids
+                switch keySet{x}
+                    case 'Depth'
+                        depth = setValues{x};
+                    case 'Images'
+                        images = setValues{x};
+                    case 'Metadata'
+                        metadata = setValues{x};
+                    case 'Times'
+                        times = setValues{x};
+                    otherwise
+                        fprintf(1, 'ActionViewer(): Unknown key %s', keySet{x});
+                end
+            end
+        end
+        video_data = Video(images, times, metadata, depth);
+        video_data.fpath = fpath;
+        video_data.current_index = 1;
+    end
 end
 
 Hds.video_data = video_data;
 % Update Hds structure
 guidata(hObject, Hds);
-if do_preview,      display_frame (video_data.frames{1},Hds);
+if video_data.display     
+    display_frame (Hds);
     set_buttons(Hds);
     set_display (Hds)
 end
@@ -313,7 +391,7 @@ switch culprit
         cur_exemplar = load_video(hObject, Hds);
         
         if isempty (cur_exemplar), return;  end
-        display_frame (cur_exemplar,Hds);
+        display_frame (Hds);
         %         start_session();
     case 'save'
         Hds = save_corpus( hObject, Hds );
