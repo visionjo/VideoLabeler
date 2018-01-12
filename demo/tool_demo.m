@@ -1,3 +1,8 @@
 al_setup();
-load('data/sample_video.mat')
-ActionViewer({'Metadata',meta_record,'Times',time_record,'Images',image_record,'Depth',deep_record})
+if ~exist('video_data','var')
+    video_data = load(fileparts('data', 'sample_video.mat'));
+end
+ActionViewer({'Metadata',video_data.meta_record,...
+    'Times',video_data.time_record,...
+    'Images',video_data.image_record,...
+    'Depth',video_data.deep_record});
