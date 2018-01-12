@@ -8,7 +8,6 @@ function display_frame(Hds)
 %      April 2015 J Robinson
 % view_opts = {'LineWidth',3,'LineStyle','-','EdgeColor','r'};
 
-fprintf (1, '\nInfo for Exemplar under review:');
 % print_exemplar (exemplar);
 axis(Hds.axis_preview);
 imshow(Hds.video_data.frames{Hds.video_data.current_index},...

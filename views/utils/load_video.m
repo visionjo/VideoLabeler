@@ -5,7 +5,12 @@ function handles = load_video(hObject, handles, fpath)
 
 if nargin < 3
     [filename, pathname] = uigetfile('*.mat','File Selector');
-    fpath = fullfile(pathname, filename);
+    if  filename == 0
+        disp('Cancel Selected')
+        return;
+    end
+    
+     fpath = [pathname, filename];
 else
     %     pathname = optional_fpath{1};
     %     if numel(pathname) > 1
@@ -14,14 +19,9 @@ else
     %         filename = '';
     %     end
 end
-% if  fpath == 0
-%     disp('User selected Cancel')
-%     cur_exemplar = '';
-%     return;
-% end
-disp(['Loading video ' fpath])
-%     fpath = [pathname filename];
 
+if ~exist(fpath, 'file'), return; 	end
+disp(['Loading video ' fpath])
 mContents = open(fpath);        % open MAT file, set as corpus struct
 %     corpus = mContents.corpus;
 if nargin == 3
