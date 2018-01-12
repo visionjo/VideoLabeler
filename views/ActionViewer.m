@@ -22,7 +22,7 @@ function varargout = ActionViewer(varargin)
 
 % Edit the above text to modify the response to help ActionViewer
 
-% Last Modified by GUIDE v2.5 10-Jan-2018 17:09:06
+% Last Modified by GUIDE v2.5 12-Jan-2018 13:07:59
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -45,7 +45,7 @@ gui_State = struct('gui_Name',       mfilename, ...
 
 opt_args = {'Depth', 'Images', 'Metadata', 'Times', 'fpath'};
 parse_opts = false;
-if nargin 
+if nargin
     
     if ischar(varargin{1})
         gui_State.gui_Callback = str2func(varargin{1});
@@ -53,7 +53,11 @@ if nargin
             parse_opts = true;
         end
     end
-    if parse_opts || length(varargin{1}) > 1
+    %     if length(varargin{1}) == 2 && strcmp(varargin{1}{1}, '.mat')
+    
+    
+    
+    if parse_opts || (length(varargin{1}) > 1 && ~strcmp(varargin{1}, 'lb_actions_CreateFcn'))
         mapObj = containers.Map(varargin{1}(1:2:end),varargin{1}(2:2:end),'UniformValues',false);
         keySet = mapObj.keys;
         setValues = mapObj.values;
@@ -79,25 +83,26 @@ if nargin
                 end
             end
         end
-        video_data = Video(images, times, metadata, depth);
+        video_data = Video(images, fpath);% times, metadata, depth);
         video_data.fpath = fpath;
-        this.Palette = ColorPalette(video_data.nframes);
+        Hds.Palette = ColorPalette(video_data.nframes);
+        Hds.video_data = video_data;
     end
     
     %             this.color_palette = ones(150, 10000, 3)*250;
-            %
-            %             this.colors = cell(1, 10);
-            %             this.colors{1} = [1 1 0];
-            %             this.colors{2} = [1 0 1];
-            %             this.colors{3} = [0 1 1];
-            %             this.colors{4} = [1 0 0];
-            %             this.colors{5} = [0 1 0];
-            %             this.colors{6} = [0 0 1];
-            %             this.colors{7} = [1 1 1];
-            %             this.colors{8} = [0.5 0.5 0.5];
-            %             this.colors{9} = [0.7 .2 0.2];
-            %             this.colors{10} = [0.1 .7 .5];
-            
+    %
+    %             this.colors = cell(1, 10);
+    %             this.colors{1} = [1 1 0];
+    %             this.colors{2} = [1 0 1];
+    %             this.colors{3} = [0 1 1];
+    %             this.colors{4} = [1 0 0];
+    %             this.colors{5} = [0 1 0];
+    %             this.colors{6} = [0 0 1];
+    %             this.colors{7} = [1 1 1];
+    %             this.colors{8} = [0.5 0.5 0.5];
+    %             this.colors{9} = [0.7 .2 0.2];
+    %             this.colors{10} = [0.1 .7 .5];
+    
 end
 if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
@@ -105,7 +110,6 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
 
 
 % --- Executes just before ActionViewer is made visible.
@@ -140,11 +144,11 @@ tmp = fileparts(which('ActionViewer'));
 Hds.rootdir = [fileparts(tmp(1:end-3)) filesep];
 
 axes(Hds.logo_smile);
-imshow([Hds.rootdir fileparts('docs', 'logo-smile.png')]);
+imshow([Hds.rootdir fullfile('docs', 'logo-smile.png')]);
 axes(Hds.logo_nu);
-imshow([Hds.rootdir fileparts('docs', 'nu_logo.png')]);
+imshow([Hds.rootdir fullfile('docs', 'nu_logo.png')]);
 
-axis(Hds.axis_preview);
+axes(Hds.axis_preview);
 
 % Choose default command line output for ActionViewer
 Hds.output = hObject;
@@ -157,7 +161,7 @@ if opts_ids
     if ischar(varargin{1}) &&  opts_ids == 1
         gui_State.gui_Callback = str2func(varargin{1});
         Hds.video_data = {};
-
+        
     else
         if opts_ids == 1
             opts = varargin{1};
@@ -190,7 +194,7 @@ if opts_ids
                 end
             end
         end
-        video_data = Video(images, times, metadata, depth);
+        video_data = Video(images, fpath);%, times, metadata, depth);
         video_data.fpath = fpath;
         video_data.current_index = 1;
         Hds.video_data = video_data;
@@ -204,9 +208,18 @@ if opts_ids
     end
 else
     
-Hds.video_data = {};
-
+    Hds.video_data = {};
+    
+    Hds.Palette  = ColorPalette(10000);
 end
+userhome = [getuserhome() filesep 'data' filesep];
+
+if ~exist(userhome, 'dir')
+    mkdir(userhome)
+end
+set(Hds.tf_outdir, 'String', userhome)
+Hds.outdir = userhome;
+Hds.outbin = [userhome 'tmp.csv'];
 guidata(hObject, Hds);
 
 
@@ -226,8 +239,14 @@ function pb_load_Callback(hObject, ~, Hds)       %#ok<DEFNU>
 % open M file; preview set to index 1
 
 Hds = load_video(hObject, Hds);
-set_display (Hds);
+set_display (Hds); 
 set_buttons (Hds);
+
+if ~isempty(Hds.video_data)
+    Hds.Palette  = ColorPalette(Hds.video_data.nframes);
+else
+    Hds.Palette  = ColorPalette(10000);
+end
 
 % if isempty (cur_frame), return;  end
 % axis(Hds.axis_preview);
@@ -419,10 +438,10 @@ new_video( hObject, Hds, dirname );
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu26_CreateFcn(hObject, eventdata, handles)
+function popupmenu26_CreateFcn(hObject, eventdata, Hds)
 % hObject    handle to popupmenu26 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+% Hds    empty - Hds not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -435,10 +454,11 @@ end
 function slidebar_Callback(hObject, eventdata, Hds)
 % hObject    handle to slidebar (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+if isempty(Hds.video_data), return; end
 pos = hObject.Value;
 frame_id = round(Hds.video_data.nframes*pos);
 if frame_id == 0
@@ -457,10 +477,10 @@ guidata(hObject, Hds);              % Update Hds structure
 
 
 % --- Executes during object creation, after setting all properties.
-function slidebar_CreateFcn(hObject, eventdata, handles)
+function slidebar_CreateFcn(hObject, eventdata, Hds)
 % hObject    handle to slidebar (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+% Hds    empty - Hds not created until after all CreateFcns called
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -468,20 +488,20 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 % --- Executes on selection change in lb_actions.
-function lb_actions_Callback(hObject, eventdata, handles)
+function lb_actions_Callback(hObject, eventdata, Hds)
 % hObject    handle to lb_actions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns lb_actions contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from lb_actions
 
 
 % --- Executes during object creation, after setting all properties.
-function lb_actions_CreateFcn(hObject, eventdata, handles)
+function lb_actions_CreateFcn(hObject, eventdata, Hds)
 % hObject    handle to lb_actions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+% Hds    empty - Hds not created until after all CreateFcns called
 
 % Hint: listbox controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -492,31 +512,55 @@ end
 
 
 % --- Executes on button press in pb_next.
-function pb_next_Callback(hObject, eventdata, handles)
+function pb_next_Callback(hObject, eventdata, Hds)
 % hObject    handle to pb_next (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
 function icon_load_ClickedCallback(hObject, eventdata, Hds)
 % hObject    handle to icon_load (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 Hds = load_video(hObject, Hds);
+
+if ~isempty(Hds.video_data)
+    Hds.Palette  = ColorPalette(Hds.video_data.nframes);
+else
+    Hds.Palette  = ColorPalette(10000);
+end
+
+set(Hds.lb_actions,'Value', 1);
+set(Hds.slidebar,'Value',0)
 set_display (Hds);
 set_buttons (Hds);
+
+fname = strrep(strrep(strrep(Hds.video_data.fpath, ...
+    fileparts(Hds.video_data.fpath),''),filesep,''), '.mat', '');
+
+outbin = strcat(Hds.outdir, fname, '.csv');
+Hds.outbin = outbin;
+Hds.outdir = [fileparts(outbin) filesep];
+set(Hds.tf_outdir, 'String', Hds.outdir)
+
+if ~exist(Hds.outdir, 'dir')
+    mkdir(Hds.outdir);
+end
 
 % if isempty (cur_frame), return;  end
 % axis(Hds.axis_preview);
 display_frame (Hds);
+guidata(hObject, Hds);              % Update Hds structure
+
+
 
 
 % --- Executes on button press in b_start.
 function b_start_Callback(hObject, eventdata, Hds)
 % hObject    handle to b_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 action_types = get(Hds.lb_actions,'String');     % get selected item
 ids_selected = get(Hds.lb_actions,'Value');
 
@@ -551,57 +595,73 @@ guidata(hObject, Hds);              % Update Hds structure
 
 
 % --- Executes on button press in b_end.
-function b_end_Callback(hObject, eventdata, handles)
+function b_end_Callback(hObject, eventdata, Hds)
 % hObject    handle to b_end (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-action_types = get(handles.lb_actions,'String');     % get selected item
-ids_selected = get(handles.lb_actions,'Value');
+% Hds    structure with Hds and user data (see GUIDATA)
+action_types = get(Hds.lb_actions,'String');     % get selected item
+ids_selected = get(Hds.lb_actions,'Value');
 
-handles.video_data.Labels(end) = handles.video_data.Labels(end).set_end(handles.video_data.current_index);
-cLabel = handles.video_data.Labels(end);
+Hds.video_data.Labels(end) = Hds.video_data.Labels(end).set_end(Hds.video_data.current_index);
+cLabel = Hds.video_data.Labels(end);
 
-handles.Palette = handles.Palette.add(ids_selected, cLabel);
-set(handles.b_start, 'Enable','on');
-set(handles.b_end, 'Enable','off');
+Hds.Palette = Hds.Palette.add(ids_selected, cLabel);
+set(Hds.b_start, 'Enable','on');
+set(Hds.b_end, 'Enable','off');
+
+
+% dlmwrite(Hds.outbin,{cLabel.action_type, cLabel.start_frame, cLabel.end_frame},'delimiter',',','-append');
+
 
 % for y = cLabel.start_frame:cLabel.end_frame
-%     
-%     handles.video_data.color_palette(:,y,:) = ...
-%         repmat(handles.video_data.colors{ids_selected},[150, 1]);
+%
+%     Hds.video_data.color_palette(:,y,:) = ...
+%         repmat(Hds.video_data.colors{ids_selected},[150, 1]);
 % end
-% handles.video_data.color_palette(:,,:)...
-%     = handles.video_data.colors{ids_selected};
+% Hds.video_data.color_palette(:,,:)...
+%     = Hds.video_data.colors{ids_selected};
 
+% dlmwrite('test.csv',N,'delimiter',',','-append');
+contents = {};
+if exist(Hds.outbin, 'file')
+    contents =csv2cell(Hds.outbin,'fromfile');
+end
+% append action label
+contents = [contents; {cLabel.action_type, cLabel.start_frame, cLabel.end_frame}];
+cell2csv(Hds.outbin,contents);
+% nentries = size(contents, 1);
 
-axes(handles.axis_color);
-imshow(handles.Palette.panel)
-axes(handles.axis_preview)
- 
-items = get(handles.lb_actions,'String');
+% for x = 1:nentries
+%     cell2csv(Hds.outbin,{cLabel.action_type, cLabel.start_frame, cLabel.end_frame});
+% end
+axes(Hds.axis_color);
+imshow(Hds.Palette.panel)
+axes(Hds.axis_preview)
+
+items = get(Hds.lb_actions,'String');
 nitems = length(find(cellfun(@isempty,items)==0));
 
 % if ids_selected + 1
 if ids_selected + 1 > nitems
-    set(handles.lb_actions,'Value', nitems);
+    set(Hds.lb_actions,'Value', nitems);
 else
-    set(handles.lb_actions,'Value', ids_selected + 1);
+    set(Hds.lb_actions,'Value', ids_selected + 1);
 end
-guidata(hObject, handles);              % Update Hds structure
+guidata(hObject, Hds);              % Update Hds structure
 
 
 % --- Executes on button press in b_remove.
-function b_remove_Callback(hObject, eventdata, handles)
+function b_remove_Callback(hObject, eventdata, Hds)
 % hObject    handle to b_remove (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 
 
 % --- Executes on button press in tb_play.
-function tb_play_Callback(hObject, eventdata, handles)
+function tb_play_Callback(hObject, eventdata, Hds)
 % hObject    handle to tb_play (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Hds    structure with Hds and user data (see GUIDATA)
 % gui_toggle;
 % How to stop a while loop with a toggle button.
 % S.f = figure('name','togglegui',...
@@ -631,3 +691,109 @@ function tb_play_Callback(hObject, eventdata, handles)
 %
 %     end
 % Hint: get(hObject,'Value') returns toggle state of tb_play
+
+
+% --- Executes on mouse press over figure background.
+function fig_ActionViewer_ButtonDownFcn(hObject, eventdata, Hds)
+% hObject    handle to fig_ActionViewer (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+disp(hObject)
+
+
+% --- Executes on key press with focus on fig_ActionViewer and none of its controls.
+function fig_ActionViewer_KeyPressFcn(hObject, eventdata, Hds)
+% hObject    handle to fig_ActionViewer (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% Hds    structure with Hds and user data (see GUIDATA)
+if strcmp(eventdata.Key, 'space')
+    
+elseif strcmp(eventdata.Key, 'escape')
+    
+end
+
+
+
+function edit5_Callback(hObject, eventdata, Hds)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit5 as text
+%        str2double(get(hObject,'String')) returns contents of edit5 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit5_CreateFcn(hObject, eventdata, Hds)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    empty - Hds not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in b_loaddir.
+function b_loaddir_Callback(hObject, eventdata, Hds)
+% hObject    handle to b_loaddir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+
+
+
+function tf_outdir_Callback(hObject, eventdata, Hds)
+% hObject    handle to tf_outdir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of tf_outdir as text
+%        str2double(get(hObject,'String')) returns contents of tf_outdir as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function tf_outdir_CreateFcn(hObject, eventdata, Hds)
+% hObject    handle to tf_outdir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    empty - Hds not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton42.
+function pushbutton42_Callback(hObject, eventdata, Hds)
+% hObject    handle to pushbutton42 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+
+
+% --- Executes on button press in b_select.
+function b_select_Callback(hObject, eventdata, Hds)
+% hObject    handle to b_select (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% Hds    structure with Hds and user data (see GUIDATA)
+outdir = get(Hds.tf_outdir,'String');
+
+if isdir(outdir)
+    [filename, pathname] = uigetfile(outdir,'File Selector');
+else
+    [filename, pathname] = uigetfile(getuserhome(),'File Selector');
+end
+if  filename == 0
+    disp('Cancel Selected')
+    return;
+end
+
+fpath = [pathname, filename];
+Hds.outdir = fpath;
+
+guidata(hObject, Hds);              % Update Hds structure

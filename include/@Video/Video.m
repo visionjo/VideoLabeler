@@ -27,30 +27,34 @@ classdef Video
     methods (Access = public)
         
         
-
-        function this = Video(image_record, time_record, metadata,...
-                deep_record, Labels)
+        
+        function this = Video(image_record, fpath, Labels)
+            %             , time_record, metadata,deep_record, Labels)
             % Constructor
             
             this.frames = image_record;
             this.nframes = length(this.frames);
-            this.tima_stamps = time_record;
-            this.metadata = metadata;
-            this.deep_record = deep_record;
+            this.tima_stamps = [];
+            %             this.tima_stamps = time_record;
+            this.metadata = [];
+            %             this.metadata = metadata;
+            %             this.deep_record = deep_record;
+            this.deep_record = [];
             this.current_index = 1;
-            if nargin == 4
-                % if labels are not passed in to constructor as argument
-                this.Labels = [];
-            else
-                this.Labels = Labels;
-            end
+            %             if nargin == 3
+            % if labels are not passed in to constructor as argument
+            this.Labels = [];
+            %             else
+            %                 this.Labels = Labels;
+            %             end
             if this.nframes > 0
                 % only display if images exist
                 this.display = true;
             else
                 this.display = false;
             end
-            this.fpath = '';
+            
+            this.fpath = fpath;
             this.unsaved = false;
             
             this.do_skullaton = false;
@@ -70,6 +74,6 @@ classdef Video
             %             this.colors{9} = [0.7 .2 0.2];
             %             this.colors{10} = [0.1 .7 .5];
         end
-    end    
+    end
 end
 
