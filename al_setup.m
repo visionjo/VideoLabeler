@@ -9,7 +9,7 @@ function DIR_ROOT =  al_setup()
 %     DEVELOPED : 2017b
 %     FILENAME  : al_setup.m
 %
-dirnames = {'demo','views', 'include'};
+dirnames = {'demo','views', 'include', 'utils'};
 
 fpath = which ('al_setup');
 

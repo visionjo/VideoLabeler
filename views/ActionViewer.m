@@ -22,7 +22,7 @@ function varargout = ActionViewer(varargin)
 
 % Edit the above text to modify the response to help ActionViewer
 
-% Last Modified by GUIDE v2.5 10-Jan-2018 17:09:06
+% Last Modified by GUIDE v2.5 12-Jan-2018 12:34:17
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -53,6 +53,10 @@ if nargin
             parse_opts = true;
         end
     end
+    %     if length(varargin{1}) == 2 && strcmp(varargin{1}{1}, '.mat')
+        
+        
+        
     if parse_opts || length(varargin{1}) > 1
         mapObj = containers.Map(varargin{1}(1:2:end),varargin{1}(2:2:end),'UniformValues',false);
         keySet = mapObj.keys;
@@ -81,7 +85,8 @@ if nargin
         end
         video_data = Video(images, times, metadata, depth);
         video_data.fpath = fpath;
-        this.Palette = ColorPalette(video_data.nframes);
+        Hds.Palette = ColorPalette(video_data.nframes);
+        Hds.video_data = video_data;
     end
     
     %             this.color_palette = ones(150, 10000, 3)*250;
@@ -105,7 +110,6 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
 
 
 % --- Executes just before ActionViewer is made visible.
@@ -140,11 +144,11 @@ tmp = fileparts(which('ActionViewer'));
 Hds.rootdir = [fileparts(tmp(1:end-3)) filesep];
 
 axes(Hds.logo_smile);
-imshow([Hds.rootdir fileparts('docs', 'logo-smile.png')]);
+imshow([Hds.rootdir fullfile('docs', 'logo-smile.png')]);
 axes(Hds.logo_nu);
-imshow([Hds.rootdir fileparts('docs', 'nu_logo.png')]);
+imshow([Hds.rootdir fullfile('docs', 'nu_logo.png')]);
 
-axis(Hds.axis_preview);
+axes(Hds.axis_preview);
 
 % Choose default command line output for ActionViewer
 Hds.output = hObject;
@@ -205,7 +209,7 @@ if opts_ids
 else
     
 Hds.video_data = {};
-
+Hds.Palette  = ColorPalette(10000);
 end
 guidata(hObject, Hds);
 
@@ -228,6 +232,12 @@ function pb_load_Callback(hObject, ~, Hds)       %#ok<DEFNU>
 Hds = load_video(hObject, Hds);
 set_display (Hds);
 set_buttons (Hds);
+
+if ~isempty(Hds.video_data)
+    Hds.Palette  = ColorPalette(Hds.video_data.nframes);
+else
+    Hds.Palette  = ColorPalette(10000);
+end
 
 % if isempty (cur_frame), return;  end
 % axis(Hds.axis_preview);
@@ -439,6 +449,7 @@ function slidebar_Callback(hObject, eventdata, Hds)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+if isempty(Hds.video_data), return; end
 pos = hObject.Value;
 frame_id = round(Hds.video_data.nframes*pos);
 if frame_id == 0
@@ -504,12 +515,23 @@ function icon_load_ClickedCallback(hObject, eventdata, Hds)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 Hds = load_video(hObject, Hds);
+
+if ~isempty(Hds.video_data)
+    Hds.Palette  = ColorPalette(Hds.video_data.nframes);
+else
+    Hds.Palette  = ColorPalette(10000);
+end
+
+set(Hds.lb_actions,'Value', 1);
+set(Hds.slidebar,'Value',0)
 set_display (Hds);
 set_buttons (Hds);
 
 % if isempty (cur_frame), return;  end
 % axis(Hds.axis_preview);
 display_frame (Hds);
+
+
 
 
 % --- Executes on button press in b_start.
@@ -631,3 +653,86 @@ function tb_play_Callback(hObject, eventdata, handles)
 %
 %     end
 % Hint: get(hObject,'Value') returns toggle state of tb_play
+
+
+% --- Executes on mouse press over figure background.
+function fig_ActionViewer_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to fig_ActionViewer (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+disp(hObject)
+
+
+% --- Executes on key press with focus on fig_ActionViewer and none of its controls.
+function fig_ActionViewer_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to fig_ActionViewer (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+if strcmp(eventdata.Key, 'space')
+    
+elseif strcmp(eventdata.Key, 'escape')
+    
+end
+
+
+
+function edit5_Callback(hObject, eventdata, handles)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit5 as text
+%        str2double(get(hObject,'String')) returns contents of edit5 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit5_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in b_loaddir.
+function b_loaddir_Callback(hObject, eventdata, handles)
+% hObject    handle to b_loaddir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+function tf_outdir_Callback(hObject, eventdata, handles)
+% hObject    handle to tf_outdir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of tf_outdir as text
+%        str2double(get(hObject,'String')) returns contents of tf_outdir as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function tf_outdir_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to tf_outdir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton42.
+function pushbutton42_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton42 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
