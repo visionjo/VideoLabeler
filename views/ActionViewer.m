@@ -22,7 +22,7 @@ function varargout = ActionViewer(varargin)
 
 % Edit the above text to modify the response to help ActionViewer
 
-% Last Modified by GUIDE v2.5 09-Jan-2018 01:27:52
+% Last Modified by GUIDE v2.5 10-Jan-2018 17:09:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,7 +81,23 @@ if nargin
         end
         video_data = Video(images, times, metadata, depth);
         video_data.fpath = fpath;
+        this.Palette = ColorPalette(video_data.nframes);
     end
+    
+    %             this.color_palette = ones(150, 10000, 3)*250;
+            %
+            %             this.colors = cell(1, 10);
+            %             this.colors{1} = [1 1 0];
+            %             this.colors{2} = [1 0 1];
+            %             this.colors{3} = [0 1 1];
+            %             this.colors{4} = [1 0 0];
+            %             this.colors{5} = [0 1 0];
+            %             this.colors{6} = [0 0 1];
+            %             this.colors{7} = [1 1 1];
+            %             this.colors{8} = [0.5 0.5 0.5];
+            %             this.colors{9} = [0.7 .2 0.2];
+            %             this.colors{10} = [0.1 .7 .5];
+            
 end
 if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
@@ -114,18 +130,19 @@ if any(strcmp(sFigureNames,'ActionViewer')&strcmp(sVisible,'on'))
         %         Quit_Program();
         return;
     else
-        Quit_Program();
+        quit_program();
     end
     
 end
 
 tmp = fileparts(which('ActionViewer'));
-Hds.rootdir = [fileparts(tmp(1:end-3)) '/'];
+
+Hds.rootdir = [fileparts(tmp(1:end-3)) filesep];
 
 axes(Hds.logo_smile);
-imshow([Hds.rootdir 'docs/logo-smile.png']);
+imshow([Hds.rootdir fileparts('docs', 'logo-smile.png')]);
 axes(Hds.logo_nu);
-imshow([Hds.rootdir 'docs/nu_logo.png']);
+imshow([Hds.rootdir fileparts('docs', 'nu_logo.png')]);
 
 axis(Hds.axis_preview);
 
@@ -134,13 +151,13 @@ Hds.output = hObject;
 % imshow('logo-smile.png');
 
 opt_args = {'Depth', 'Images', 'Metadata', 'Times', 'fpath'};
-parse_opts = false;
 opts_ids = length(varargin);
-video_data = {};
 if opts_ids
     
     if ischar(varargin{1}) &&  opts_ids == 1
         gui_State.gui_Callback = str2func(varargin{1});
+        Hds.video_data = {};
+
     else
         if opts_ids == 1
             opts = varargin{1};
@@ -176,17 +193,22 @@ if opts_ids
         video_data = Video(images, times, metadata, depth);
         video_data.fpath = fpath;
         video_data.current_index = 1;
+        Hds.video_data = video_data;
+        % Update Hds structure
+        if video_data.display
+            display_frame (Hds);
+            set_buttons(Hds);
+            set_display (Hds)
+        end
+        Hds.Palette  = ColorPalette(video_data.nframes);
     end
-end
+else
+    
+Hds.video_data = {};
 
-Hds.video_data = video_data;
-% Update Hds structure
-guidata(hObject, Hds);
-if video_data.display     
-    display_frame (Hds);
-    set_buttons(Hds);
-    set_display (Hds)
 end
+guidata(hObject, Hds);
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -210,9 +232,6 @@ set_buttons (Hds);
 % if isempty (cur_frame), return;  end
 % axis(Hds.axis_preview);
 display_frame (Hds);
-
-
-
 
 %% Scroll Pad Panel
 % --- Executes on button press in pb_prev, pb_play, pb_next, pb_last, pb_first
@@ -301,63 +320,8 @@ elseif strcmp(culprit_varname, 'pb_last')
     
     set_display(Hds);
     % --- Executes add button press.
-elseif strcmp(culprit_varname, 'pb_add')
-    
-    % extract corpus vars from data handle
-    if ~Hds.video_data.display
-        Hds.video_data.num_exemp_flags = Hds.video_data.num_exemp_flags + 1;
-        Hds.video_data.unsaved = true;
-    end
-    %
-    % % --- Executes remove button press.
-    % elseif strcmp(culprit_varname, 'pb_remove')
-    %
-    %
-    %     % extract corpus vars from data handle
-    %     if Hds.video_data.corpus.flag ~= -1
-    %         Hds.video_data.flag = -1;
-    %         Hds.video_data.unsaved = true;
-    %     end
-    %
-    % % --- Executes remove button press.
-    % elseif strcmp(culprit_varname, 'pb_delete')
-    %
-    %     % extract corpus vars from data handle
-    %     current_index = Hds.video_data.current_index;
-    %     frames = Hds.video_data.frames;
-    %     cur_exemplar = frames{current_index};
-    %
-    %     % determine boundaries according to the current state of 'next'; if enabled
-    %     % then check 'previous'... logic elsewhere sets button states
-    %     if strcmp(get(Hds.pb_next,'Enable'), 'on')
-    %         Hds.video_data.current_index = Hds.video_data.current_index + 1;
-    %         %         next_exemplar = cur_corpus.exemplars ...
-    %         %             (Hds.video_data.current_index + 1);
-    %
-    %     elseif strcmp(get(Hds.pb_prev,'Enable'), 'on')
-    %         Hds.video_data.current_index = Hds.video_data.current_index - 1;
-    %
-    %         %         next_exemplar = cur_corpus.exemplars ...
-    %         %             (Hds.video_data.current_index - 1);
-    %         %         current_index = current_index - 1;
-    %     else
-    %         next_exemplar = [];
-    %     end
-    %
-    %     Hds.video_data.frames = removeFromCorpus(cur_corpus,cur_exemplar);
-    %     Hds.video_data.current_index = current_index;
-    %     Hds.video_data.nframes = Hds.video_data.nframes - 1;
-    %
-    %
-    %     Hds.video_data.unsaved = true;
-    %     % func call to display, i.e., plot
-    %     if ~isempty(next_exemplar)
-    %         display_frame(Hds);
-    %     end
-    %
-    %
 end
-
+Hds.slidebar.Value = Hds.video_data.current_index/Hds.video_data.nframes;
 guidata(hObject, Hds);              % Update Hds structure
 set_buttons(Hds);
 set_display (Hds)
@@ -411,7 +375,7 @@ switch culprit
         
     case 'exit'
         if Hds.video_data.unsaved
-            do_save = Quit_Program();
+            do_save = quit_program();
             if do_save, save_corpus( hObject, Hds );    end
             
         end
@@ -453,79 +417,6 @@ dirname = uigetdir('~','Select Data Directory');
 new_video( hObject, Hds, dirname );
 
 
-%
-% % --- Executes on button press in cb_test_only.
-% function cb_test_only_Callback(hObject, eventdata, Hds)
-% % hObject    handle to cb_test_only (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % Hds    structure with Hds and user data (see GUIDATA)
-%
-% if get(Hds.cb_shock_only, 'Value')
-%     on_off = 0;
-% %     set(Hds.cb_test_only, 'Value', 1);
-% else
-%     on_off = 1;
-% %     set(Hds.cb_test_only, 'Value', 0);
-% end
-% % Hint: get(hObject,'Value') returns toggle state of cb_test_only
-% video_data = Hds.video_data;
-%
-%
-%
-% % sizer = zeros(1,numel(video_data.corpus.exemplars));
-% ind= ismember([video_data.corpus.exemplars.type],'CSHOCK');
-%
-% sizer = find(ind == 1);
-% for n = 1:length(sizer)
-%     video_data.corpus.exemplars(sizer(n)).flag = 0;
-% end
-%
-% ind=find(ismember([video_data.corpus.exemplars.flag],1));
-% if isempty(ind), return;    end
-%
-% video_data.unsaved = false;
-% video_data.num_exemp_flags = numel(ind);
-%
-% video_data.current_index = min(ind);
-%
-% Hds.video_data = video_data;
-% guidata(hObject, Hds);              % Update Hds structure
-% set_buttons(Hds)
-%    set_display(Hds);
-% next_exemplar = Hds.video_data.corpus.exemplars(Hds.video_data.current_index);
-% display_frame(next_exemplar,Hds); % func call to display, i.e., plot
-%
-
-
-
-% --- Executes on button press in cb_select_all.
-% function cb_select_all_Callback(hObject, ~, Hds) %#ok<DEFNU>
-% % hObject    handle to cb_select_all (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-%
-% % Hint: get(hObject,'Value') returns toggle state of cb_select_all
-% % Hint: get(hObject,'Value') returns toggle state of cb_muzzle_only
-% video_data = Hds.video_data;
-% ind= find(ismember([video_data.corpus.exemplars.flag],0));
-% for k = 1:length(ind)
-%     video_data.corpus.exemplars(ind(k)).flag = 1;
-% end
-%
-% Hds.video_data = video_data;
-% guidata(hObject, Hds);              % Update Hds structure
-% set_buttons(Hds);
-% set_display(Hds);
-
-% --- Executes on selection change in popupmenu26.
-function popupmenu26_Callback(hObject, eventdata, handles)
-% hObject    handle to popupmenu26 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu26 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu26
-
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu26_CreateFcn(hObject, eventdata, handles)
@@ -540,53 +431,34 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pb_missed.
-function pb_missed_Callback(hObject, eventdata, Hds)
-% hObject    handle to pb_missed (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-Hds.video_data.missed = Hds.video_data.missed + 1;
-guidata(hObject, Hds);              % Update Hds structure
-set_buttons(Hds);
-set_display (Hds)  ;
-
-% --- Executes on button press in pb_fp.
-function pb_fp_Callback(hObject, eventdata, Hds)
-% hObject    handle to pb_fp (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
-
-% [temp,pname] = uigetfile('*.*','Enter data file','~');
-% in=[pname temp]; % defaultDir = pname;
-
-guidata(hObject, Hds);              % Update Hds structure
-set_buttons(Hds);
-set_display (Hds)  ;
-
-% --- Executes on button press in pb_fn.
-function pb_fn_Callback(hObject, eventdata, Hds)
-% hObject    handle to pb_fn (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-guidata(hObject, Hds);              % Update Hds structure
-set_buttons(Hds);
-set_display (Hds)  ;
-
-
 % --- Executes on slider movement.
-function slider2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
+function slidebar_Callback(hObject, eventdata, Hds)
+% hObject    handle to slidebar (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+pos = hObject.Value;
+frame_id = round(Hds.video_data.nframes*pos);
+if frame_id == 0
+    Hds.video_data.current_index = 1;
+else
+    
+    Hds.video_data.current_index = round(Hds.video_data.nframes*pos);
+end
+
+display_frame(Hds);
+set_buttons(Hds);
+set_display (Hds);
+guidata(hObject, Hds);              % Update Hds structure
+
+
 
 
 % --- Executes during object creation, after setting all properties.
-function slider2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
+function slidebar_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slidebar (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -594,7 +466,6 @@ function slider2_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
-
 
 % --- Executes on selection change in lb_actions.
 function lb_actions_Callback(hObject, eventdata, handles)
@@ -642,24 +513,41 @@ display_frame (Hds);
 
 
 % --- Executes on button press in b_start.
-function b_start_Callback(hObject, eventdata, handles)
+function b_start_Callback(hObject, eventdata, Hds)
 % hObject    handle to b_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-action_types = get(handles.lb_actions,'String');     % get selected item
-ids_selected = get(handles.lb_actions,'Value');
+action_types = get(Hds.lb_actions,'String');     % get selected item
+ids_selected = get(Hds.lb_actions,'Value');
 
-handles.video_data.Labels = [handles.video_data.Labels;...
-    Label(action_types{ids_selected}, handles.video_data.current_index)];
-
-handles.video_data.color_palette(:,handles.video_data.current_index,:) = repmat(handles.video_data.colors{ids_selected},[150, 1]);
+Hds.video_data.Labels = [Hds.video_data.Labels;...
+    Label(action_types{ids_selected}, Hds.video_data.current_index)];
 
 
-axes(handles.axis_color);
-imshow(handles.video_data.color_palette)
-axes(handles.axis_preview)
-guidata(hObject, handles);              % Update Hds structure
+pos = Hds.slidebar.Value;
+frame_id = round(Hds.video_data.nframes*pos);
+if frame_id == 0
+    Hds.video_data.current_index = 1;
+else
+    
+    Hds.video_data.current_index = round(Hds.video_data.nframes*pos);
+end
+cLabel.start_frame = Hds.video_data.current_index;
+cLabel.end_frame = Hds.video_data.current_index + 1;
 
+Hds.Palette = Hds.Palette.add(ids_selected, cLabel);
+
+% Hds.Palette = Hds.Palette.add(ids_selected, );
+% Hds.video_data.color_palette(:,Hds.video_data.current_index,:) ...
+%     = repmat(Hds.video_data.colors{ids_selected},[150, 1]);
+
+axes(Hds.axis_color);
+imshow(Hds.Palette.panel)
+axes(Hds.axis_preview)
+
+% set(Hds.b_start, 'Enable','off');
+set(Hds.b_end, 'Enable','on');
+guidata(hObject, Hds);              % Update Hds structure
 
 
 % --- Executes on button press in b_end.
@@ -673,14 +561,32 @@ ids_selected = get(handles.lb_actions,'Value');
 handles.video_data.Labels(end) = handles.video_data.Labels(end).set_end(handles.video_data.current_index);
 cLabel = handles.video_data.Labels(end);
 
-for y = cLabel.start_frame:cLabel.end_frame
-    handles.video_data.color_palette(:,y,:) = repmat(handles.video_data.colors{ids_selected},[150, 1]);
-end
+handles.Palette = handles.Palette.add(ids_selected, cLabel);
+set(handles.b_start, 'Enable','on');
+set(handles.b_end, 'Enable','off');
+
+% for y = cLabel.start_frame:cLabel.end_frame
+%     
+%     handles.video_data.color_palette(:,y,:) = ...
+%         repmat(handles.video_data.colors{ids_selected},[150, 1]);
+% end
 % handles.video_data.color_palette(:,,:)...
 %     = handles.video_data.colors{ids_selected};
+
+
 axes(handles.axis_color);
-imshow(handles.video_data.color_palette)
+imshow(handles.Palette.panel)
 axes(handles.axis_preview)
+ 
+items = get(handles.lb_actions,'String');
+nitems = length(find(cellfun(@isempty,items)==0));
+
+% if ids_selected + 1
+if ids_selected + 1 > nitems
+    set(handles.lb_actions,'Value', nitems);
+else
+    set(handles.lb_actions,'Value', ids_selected + 1);
+end
 guidata(hObject, handles);              % Update Hds structure
 
 

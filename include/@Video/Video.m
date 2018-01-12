@@ -19,10 +19,9 @@ classdef Video
         deep_record;
         current_index;     % index of current frame being displayed
         Labels;
-        color_palette;
+        Palette;
         display;
         unsaved;           % true if labels modified but not saved
-        colors;
     end
     
     methods (Access = public)
@@ -56,19 +55,20 @@ classdef Video
             
             this.do_skullaton = false;
             
-            this.color_palette = ones(150, 4500, 3)*250;
-        
-            this.colors = cell(1, 10);
-            this.colors{1} = [1 1 0];
-            this.colors{2} = [1 0 1];
-            this.colors{3} = [0 1 1];
-            this.colors{4} = [1 0 0];
-            this.colors{5} = [0 1 0];
-            this.colors{6} = [0 0 1];
-            this.colors{7} = [1 1 1];
-            this.colors{8} = [0.5 0.5 0.5];
-            this.colors{9} = [0.7 .2 0.2];
-            this.colors{10} = [0.1 .7 .5];
+            
+            %             this.color_palette = ones(150, 10000, 3)*250;
+            %
+            %             this.colors = cell(1, 10);
+            %             this.colors{1} = [1 1 0];
+            %             this.colors{2} = [1 0 1];
+            %             this.colors{3} = [0 1 1];
+            %             this.colors{4} = [1 0 0];
+            %             this.colors{5} = [0 1 0];
+            %             this.colors{6} = [0 0 1];
+            %             this.colors{7} = [1 1 1];
+            %             this.colors{8} = [0.5 0.5 0.5];
+            %             this.colors{9} = [0.7 .2 0.2];
+            %             this.colors{10} = [0.1 .7 .5];
         end
     end    
 end

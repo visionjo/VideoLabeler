@@ -24,7 +24,7 @@ classdef Label
             if nargin < 4
                 this.start_frame = start_frame;
                 
-                this.end_frame = [];
+                this.end_frame =  this.start_frame + 1;
                 this.nframes = 1;
                 
                 return;
