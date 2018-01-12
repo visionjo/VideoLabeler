@@ -37,7 +37,7 @@ In summary, this labeling tools provides the following functionality:
     utils/
 
 #### Todos
-- [ ] Enlarge interface
+- [x] Enlarge interface
 - [ ] Add scroll bar to scroll through video
 - [ ] Add play button to play through video (i.e., add various speeds that are set by clicking 'Play' 2x, 3x...)
 - [ ] Add play button to play through video (i.e., add various speeds that are set by clicking 'Play' 2x, 3x...)
