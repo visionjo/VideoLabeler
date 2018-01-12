@@ -1,4 +1,4 @@
-function handles = load_video(hObject, handles, fpath)
+function handles = load_video(hObject, handles)
 %LOAD_CORPUS Load MAT file containing corpus to be reviewed.
 %   Default - starts off on Exemplar #1
 % Display 'Open' dialog for user to select file
@@ -22,16 +22,17 @@ end
 
 if ~exist(fpath, 'file'), return; 	end
 disp(['Loading video ' fpath])
-mContents = open(fpath);        % open MAT file, set as corpus struct
+mContents = load(fpath, 'image_record');        % open MAT file, set as corpus struct
 %     corpus = mContents.corpus;
-if nargin == 3
-    handles.video_data.fpath = fpath;
-else
-    handles.corpus_data.fpath = '';
-end
+% if nargin == 3
+%     handles.video_data.fpath = fpath;
+% else
+%     handles.video_data.fpath = '';
+% end
 % assign, then display first exemplar from corpus queue
-handles.video_data = Video(mContents.image_record, ...
-    mContents.time_record, mContents.meta_record, mContents.deep_record);
+handles.video_data = Video(mContents.image_record, fpath);
+% , ...
+%     mContents.time_record, mContents.meta_record, mContents.deep_record);
 guidata(hObject, handles);
 
 
