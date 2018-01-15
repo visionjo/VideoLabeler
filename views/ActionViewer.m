@@ -531,8 +531,13 @@ else
     Hds.Palette  = ColorPalette(10000);
 end
 
+axes(Hds.axis_color);
+imshow(Hds.Palette.panel)
+axes(Hds.axis_preview)
+
 set(Hds.lb_actions,'Value', 1);
-set(Hds.slidebar,'Value',0)
+set(Hds.slidebar,'Value',0);
+
 set_display (Hds);
 set_buttons (Hds);
 
