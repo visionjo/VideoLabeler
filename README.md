@@ -9,11 +9,12 @@ Tool provides an easy-to-use interface that facilitates labeling of actions in v
 ActionViewer allows the labeler to scroll through video to mark the start and end frame of each action. 
 
 Unmarked frames are considered to not contain an action (i.e., in between actions).
+
     
-    
-In summary, this labeling tools provides the following functionality:
-    - *database* package
-    - *fiw* package
+Execute the following commands to run this program
+    >> al_setup();      % sets up environment
+    >> ActionViewer();  % launches labeling interface
+
 
 #### CONTENTS:
     Updates.txt             -- Track progress/develop of application
