@@ -22,7 +22,7 @@ function varargout = ActionViewer(varargin)
 
 % Edit the above text to modify the response to help ActionViewer
 
-% Last Modified by GUIDE v2.5 12-Jan-2018 13:07:59
+% Last Modified by GUIDE v2.5 15-Jan-2018 14:20:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -801,4 +801,26 @@ end
 fpath = [pathname, filename];
 Hds.outdir = fpath;
 
+guidata(hObject, Hds);              % Update Hds structure
+
+
+% --- Executes on button press in rb_subjects.
+function toggle_action_types(hObject, eventdata, Hds)
+% hObject    handle to rb_subjects (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_subjects
+if strcmp(eventdata.Source.String, 'Subjects+Objects')
+    actions = {'Answering phone', 'Checking watch', 'Standing up', ...
+        'Sitting down', 'Grabbing bag', 'Throwing ball' 'Drinking',...
+        'Wearing shoes', 'Reading book', 'Moving table'};
+    
+else
+    % assume Subject
+    actions = {'Walking', 'Boxing', 'Hand-waving', 'Hand clapping', 'Jumping', ...
+        'Bending', 'Turning around', 'Kicking', 'Hand raising',...
+        'Falling down'};
+end
+set(Hds.lb_actions, 'String', actions);
 guidata(hObject, Hds);              % Update Hds structure
