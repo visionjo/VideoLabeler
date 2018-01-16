@@ -544,10 +544,17 @@ set_buttons (Hds);
 fname = strrep(strrep(strrep(Hds.video_data.fpath, ...
     fileparts(Hds.video_data.fpath),''),filesep,''), '.mat', '');
 
+Hds.outdir = Hds.tf_outdir.String;
+if ~strcmp(Hds.outdir(end), '/')
+    Hds.outdir = [Hds.outdir '/'];
+end
+set(Hds.tf_outdir, 'String', Hds.outdir);
 outbin = strcat(Hds.outdir, fname, '.csv');
 Hds.outbin = outbin;
 Hds.outdir = [fileparts(outbin) filesep];
 set(Hds.tf_outdir, 'String', Hds.outdir)
+
+
 
 if ~exist(Hds.outdir, 'dir')
     mkdir(Hds.outdir);
@@ -789,18 +796,18 @@ function b_select_Callback(hObject, eventdata, Hds)
 outdir = get(Hds.tf_outdir,'String');
 
 if isdir(outdir)
-    [filename, pathname] = uigetfile(outdir,'File Selector');
+    path = uigetdir(outdir,'Directory Selector');
 else
-    [filename, pathname] = uigetfile(getuserhome(),'File Selector');
+    path = uigetdir(getuserhome(),'Directory Selector');
 end
-if  filename == 0
+if  path == 0
     disp('Cancel Selected')
     return;
+else
+    path = strcat(path, '/');
 end
-
-fpath = [pathname, filename];
-Hds.outdir = fpath;
-
+Hds.outdir = path;
+set(Hds.tf_outdir, 'String', path);
 guidata(hObject, Hds);              % Update Hds structure
 
 
