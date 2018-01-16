@@ -253,7 +253,7 @@ end
 display_frame (Hds);
 
 %% Scroll Pad Panel
-% --- Executes on button press in pb_prev, pb_play, pb_next, pb_last, pb_first
+% --- Executes on button press in pb_prev, ay, pb_next, pb_last, pb_first
 function pb_scroll_Callback(hObject, ~, Hds) %#ok<DEFNU>
 
 
@@ -487,16 +487,6 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-% --- Executes on selection change in lb_actions.
-function lb_actions_Callback(hObject, eventdata, Hds)
-% hObject    handle to lb_actions (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns lb_actions contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from lb_actions
-
-
 % --- Executes during object creation, after setting all properties.
 function lb_actions_CreateFcn(hObject, eventdata, Hds)
 % hObject    handle to lb_actions (see GCBO)
@@ -508,14 +498,6 @@ function lb_actions_CreateFcn(hObject, eventdata, Hds)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-% --- Executes on button press in pb_next.
-function pb_next_Callback(hObject, eventdata, Hds)
-% hObject    handle to pb_next (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
@@ -553,7 +535,6 @@ outbin = strcat(Hds.outdir, fname, '.csv');
 Hds.outbin = outbin;
 Hds.outdir = [fileparts(outbin) filesep];
 set(Hds.tf_outdir, 'String', Hds.outdir)
-
 
 
 if ~exist(Hds.outdir, 'dir')
@@ -621,18 +602,6 @@ Hds.Palette = Hds.Palette.add(ids_selected, cLabel);
 set(Hds.b_start, 'Enable','on');
 set(Hds.b_end, 'Enable','off');
 
-
-% dlmwrite(Hds.outbin,{cLabel.action_type, cLabel.start_frame, cLabel.end_frame},'delimiter',',','-append');
-
-
-% for y = cLabel.start_frame:cLabel.end_frame
-%
-%     Hds.video_data.color_palette(:,y,:) = ...
-%         repmat(Hds.video_data.colors{ids_selected},[150, 1]);
-% end
-% Hds.video_data.color_palette(:,,:)...
-%     = Hds.video_data.colors{ids_selected};
-
 % dlmwrite('test.csv',N,'delimiter',',','-append');
 contents = {};
 if exist(Hds.outbin, 'file')
@@ -670,40 +639,33 @@ function b_remove_Callback(hObject, eventdata, Hds)
 
 
 % --- Executes on button press in tb_play.
-function tb_play_Callback(hObject, eventdata, Hds)
-% hObject    handle to tb_play (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
-% gui_toggle;
-% How to stop a while loop with a toggle button.
-% S.f = figure('name','togglegui',...
-%     'menubar','none',...
-%     'numbert','off',...
-%     'pos',[100 100 300 150]);
-% S.t = uicontrol('Style','toggle',...
-%     'Units','pix',...
-%     'Position',[10 10 280 130],...
-%     'CallBack',@callb,...
-%     'String','No Loop');
-% movegui('center')
-
-% end
-%         function [] = callb(varargin)
-%             set(S.t,'string','Looping!')
-%             drawnow
-%             while 1
-%                 sort(rand(1010101,1)); % Put your code here.
-%                 drawnow
-%                 if ~get(S.t,'value')
-%                     set(S.t,'string','No Loop')
-%                     break
-%                 end
-%             end
-%         end
-%
-%     end
-% Hint: get(hObject,'Value') returns toggle state of tb_play
-
+function tb_play_Callback(hObject, eventdata, Hds) %#ok<DEFNU>
+if isempty(Hds.video_data), return; end
+while  eventdata.Source.Value
+    video_data = Hds.video_data;  % localize corpus vals
+    
+    % increment index to point at next exemplar in corpus
+    Hds.video_data.current_index = video_data.current_index + 1;
+    
+    
+    pos = Hds.video_data.current_index/Hds.video_data.nframes;
+    set(Hds.slidebar, 'Value', pos);
+    % check index stays within bounds, i.e. less than equal to # exemplars
+    if Hds.video_data.current_index == Hds.video_data.nframes
+        % logic governing this source should prevent this, but to ensure ...
+        display_frame(Hds); % func call to display, i.e., plot
+        set_display(Hds);
+        set(Hds.tb_play, 'Value', 0)
+        eventdata.Source.Value = 1;
+        break;
+    end
+    
+    % update GUI's axis with plot of next exemplar
+    display_frame(Hds); % func call to display, i.e., plot
+    set_display(Hds);    
+    pause(.25)
+end
+guidata(hObject, Hds);
 
 % --- Executes on mouse press over figure background.
 function fig_ActionViewer_ButtonDownFcn(hObject, eventdata, Hds)
@@ -727,17 +689,6 @@ elseif strcmp(eventdata.Key, 'escape')
     
 end
 
-
-
-function edit5_Callback(hObject, eventdata, Hds)
-% hObject    handle to edit5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit5 as text
-%        str2double(get(hObject,'String')) returns contents of edit5 as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit5_CreateFcn(hObject, eventdata, Hds)
 % hObject    handle to edit5 (see GCBO)
@@ -756,17 +707,6 @@ function b_loaddir_Callback(hObject, eventdata, Hds)
 % hObject    handle to b_loaddir (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % Hds    structure with Hds and user data (see GUIDATA)
-
-
-
-function tf_outdir_Callback(hObject, eventdata, Hds)
-% hObject    handle to tf_outdir (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% Hds    structure with Hds and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of tf_outdir as text
-%        str2double(get(hObject,'String')) returns contents of tf_outdir as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function tf_outdir_CreateFcn(hObject, eventdata, Hds)
