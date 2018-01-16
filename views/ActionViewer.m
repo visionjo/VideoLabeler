@@ -805,7 +805,7 @@ guidata(hObject, Hds);              % Update Hds structure
 
 
 % --- Executes on button press in rb_subjects.
-function toggle_action_types(hObject, eventdata, Hds)
+function toggle_action_types(hObject, eventdata, Hds) %#ok<DEFNU>
 % hObject    handle to rb_subjects (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
