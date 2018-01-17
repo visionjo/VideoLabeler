@@ -212,14 +212,17 @@ else
     
     Hds.Palette  = ColorPalette(10000);
 end
-userhome = [getuserhome() filesep 'data' filesep];
+userhome = [getuserhome() filesep];
 
-if ~exist(userhome, 'dir')
-    mkdir(userhome)
-end
-set(Hds.tf_outdir, 'String', userhome)
-Hds.outdir = userhome;
-Hds.outbin = [userhome 'tmp.csv'];
+outdir = [fullfile(userhome, 'Dropbox', 'action_labels'), filesep];
+
+Hds.outdir = outdir;
+
+set(Hds.tf_outdir, 'String', outdir)
+
+Hds.outdir = outdir;
+Hds.outbin = [outdir 'tmp.csv'];
+
 guidata(hObject, Hds);
 
 
